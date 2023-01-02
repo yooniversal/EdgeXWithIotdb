@@ -4,7 +4,7 @@ ScheduleIntervalTime = 500
 LogLevel = "INFO"
     [Writable.InsecureSecrets]
         [Writable.InsecureSecrets.DB]
-        path = "redisdb"
+        path = "iotdb"
             [Writable.InsecureSecrets.DB.Secrets]
             username = ""
             password = ""
@@ -38,7 +38,7 @@ Type = "consul"
   Name = "scheduler"
   Port = 6379
   Timeout = 5000
-  Type = "redisdb"
+  Type = "iotdb"
 
 [Intervals]
     [Intervals.Midnight]

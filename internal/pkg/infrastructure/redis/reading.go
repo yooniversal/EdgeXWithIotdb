@@ -5,6 +5,8 @@
 
 package redis
 
+/*
+
 import (
 	"encoding/json"
 	"fmt"
@@ -309,3 +311,6 @@ func convertObjectsToReadings(objects [][]byte) (readings []models.Reading, edge
 	}
 	return readings, nil
 }
+
+
+*/

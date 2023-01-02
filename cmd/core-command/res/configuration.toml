@@ -2,7 +2,7 @@
 LogLevel = "INFO"
   [Writable.InsecureSecrets]
     [Writable.InsecureSecrets.DB]
-    path = "redisdb"
+    path = "iotdb"
       [Writable.InsecureSecrets.DB.Secrets]
       username = ""
       password = ""

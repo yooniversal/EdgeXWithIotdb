@@ -51,8 +51,9 @@ func (d Database) newDBClient(
 	lc logger.LoggingClient,
 	credentials bootstrapConfig.Credentials) (interfaces.DBClient, error) {
 	databaseInfo := d.database.GetDatabaseInfo()[common.Primary]
+
 	switch databaseInfo.Type {
-	case "redisdb":
+	case "iotdb":
 		return redis.NewClient(
 			db.Configuration{
 				Host:     databaseInfo.Host,

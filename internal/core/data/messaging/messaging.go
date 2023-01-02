@@ -64,6 +64,9 @@ func BootstrapHandler(ctx context.Context, wg *sync.WaitGroup, startupTimer star
 
 	if err != nil {
 		lc.Errorf("Failed to create MessageClient: %v", err)
+		//MessageQueue Option OFF
+		//return true
+
 		return false
 	}
 

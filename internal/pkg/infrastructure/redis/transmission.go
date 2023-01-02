@@ -5,6 +5,8 @@
 
 package redis
 
+/*
+
 import (
 	"encoding/json"
 	"fmt"
@@ -226,3 +228,6 @@ func transmissionStoreKeys(conn redis.Conn, collectionKey string, age int64) ([]
 	}
 	return storeKeys, nil
 }
+
+
+*/

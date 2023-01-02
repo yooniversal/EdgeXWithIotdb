@@ -12,8 +12,8 @@ LogLevel = "INFO"
       ReadyPort = 54322
   [StageGate.Database]
     # this is intended to be the same as Database.Primary.Host/.Port for other services
-    Host = "edgex-redis"
-    Port = 6379
+    Host = "iotdb"
+    Port = 6667
     ReadyPort = 54323
   [StageGate.Registry]
     # this is intended to be the same as Registry.Host/.Port for other services

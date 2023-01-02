@@ -5,6 +5,8 @@
 
 package redis
 
+/*
+
 import (
 	"encoding/json"
 	"fmt"
@@ -379,3 +381,6 @@ func (c *Client) DeleteProcessedNotificationsByAge(age int64) (err errors.EdgeX)
 	go c.asyncDeleteTransmissionByStoreKeys(transStoreKeys)
 	return nil
 }
+
+
+*/

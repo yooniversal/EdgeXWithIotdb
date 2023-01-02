@@ -15,11 +15,11 @@ DOCKERS= \
 	docker_core_metadata \
 	docker_core_command  \
 	docker_support_notifications \
-	docker_sys_mgmt_agent \
 	docker_support_scheduler \
-	docker_security_proxy_setup \
-	docker_security_secretstore_setup \
-	docker_security_bootstrapper
+	docker_sys_mgmt_agent
+#	docker_security_proxy_setup \
+#	docker_security_secretstore_setup \
+#	docker_security_bootstrapper
 
 .PHONY: $(DOCKERS)
 
@@ -28,14 +28,14 @@ MICROSERVICES= \
 	cmd/core-metadata/core-metadata \
 	cmd/core-command/core-command \
 	cmd/support-notifications/support-notifications \
-	cmd/sys-mgmt-executor/sys-mgmt-executor \
-	cmd/sys-mgmt-agent/sys-mgmt-agent \
 	cmd/support-scheduler/support-scheduler \
-	cmd/security-proxy-setup/security-proxy-setup \
-	cmd/security-secretstore-setup/security-secretstore-setup \
-	cmd/security-file-token-provider/security-file-token-provider \
 	cmd/secrets-config/secrets-config \
-	cmd/security-bootstrapper/security-bootstrapper
+	cmd/sys-mgmt-executor/sys-mgmt-executor \
+	cmd/sys-mgmt-agent/sys-mgmt-agent
+#	cmd/security-proxy-setup/security-proxy-setup \
+#	cmd/security-secretstore-setup/security-secretstore-setup \
+#	cmd/security-file-token-provider/security-file-token-provider \
+#	cmd/security-bootstrapper/security-bootstrapper
 
 .PHONY: $(MICROSERVICES)
 

@@ -4,7 +4,7 @@ ResendLimit = 2
 ResendInterval = "5s"
   [Writable.InsecureSecrets]
     [Writable.InsecureSecrets.DB]
-    path = "redisdb"
+    path = "iotdb"
       [Writable.InsecureSecrets.DB.Secrets]
       username = ""
       password = ""
@@ -43,7 +43,7 @@ Type = "consul"
   Name = "notifications"
   Port = 6379
   Timeout = 5000
-  Type = "redisdb"
+  Type = "iotdb"
 
 [Smtp]
   Host = "smtp.gmail.com"

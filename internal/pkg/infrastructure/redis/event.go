@@ -5,6 +5,8 @@
 
 package redis
 
+/*
+
 import (
 	"encoding/json"
 	"fmt"
@@ -290,3 +292,6 @@ func convertObjectsToEvents(conn redis.Conn, objects [][]byte) (events []models.
 	}
 	return events, nil
 }
+
+
+*/

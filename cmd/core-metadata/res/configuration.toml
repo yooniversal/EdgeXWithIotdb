@@ -2,7 +2,7 @@
 LogLevel = "INFO"
   [Writable.InsecureSecrets]
     [Writable.InsecureSecrets.DB]
-    path = "redisdb"
+    path = "iotdb"
       [Writable.InsecureSecrets.DB.Secrets]
       username = ""
       password = ""
@@ -49,7 +49,7 @@ Type = "consul"
   Username = "meta"
   Port = 6379
   Timeout = 5000
-  Type = "redisdb"
+  Type = "iotdb"
 
 [Notifications]
 PostDeviceChanges = false

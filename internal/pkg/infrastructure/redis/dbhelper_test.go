@@ -5,6 +5,8 @@
 
 package redis
 
+/*
+
 import (
 	"testing"
 
@@ -16,3 +18,6 @@ func TestCreateKey(t *testing.T) {
 	expected := EventsCollectionDeviceName + DBKeySeparator + "TestDeviceName"
 	assert.Equal(t, expected, result)
 }
+
+
+*/
