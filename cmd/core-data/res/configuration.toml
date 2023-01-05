@@ -41,14 +41,14 @@ Type = "consul"
   [Databases.Primary]
   Host = "localhost"
   Name = "coredata"
-  Port = 6379
+  Port = 6667
   Timeout = 5000
   Type = "iotdb"
 
 [MessageQueue]
 Protocol = "redis"
 Host = "localhost"
-Port = 6379
+Port = 6667
 Type = "redis"
 AuthMode = "none"  # required for redis messagebus (secure or insecure).
 SecretName = "iotdb"

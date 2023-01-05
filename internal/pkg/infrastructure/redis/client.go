@@ -88,8 +88,11 @@ func (c *Client) EventsByDeviceName(offset int, limit int, name string) (events 
 	var sql = "select * from " + name
 	var timeout int64 = 1000
 	sessionDataSet, err := c.ExecuteQueryStatement(sql, &timeout)
+	fmt.Println("**client.go** session pass step 1")
 	event := ChangeTypeToEvent(sessionDataSet)
+	fmt.Println("**client.go** session pass step 2")
 	sessionDataSet.Close()
+	fmt.Println("**client.go** session pass step 3")
 
 	events = append(events, event)
 
@@ -99,6 +102,17 @@ func (c *Client) EventsByDeviceName(offset int, limit int, name string) (events 
 	}
 
 	return
+}
+
+// EventCountByDeviceName returns the count of Event associated a specific Device from the database
+func (c *Client) EventCountByDeviceName(deviceName string) (uint32, errors.EdgeX) {
+	//count, edgeXerr := getMemberNumber(conn, ZCARD, CreateKey(EventsCollectionDeviceName, deviceName))
+	//if edgeXerr != nil {
+	//	return 0, errors.NewCommonEdgeXWrapper(edgeXerr)
+	//}
+	//
+	//return count, nil
+	return 999, nil
 }
 
 /*

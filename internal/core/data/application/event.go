@@ -8,8 +8,6 @@ package application
 import (
 	"context"
 	"fmt"
-	"strings"
-
 	"github.com/edgexfoundry/edgex-go/internal/core/data/container"
 	"github.com/edgexfoundry/edgex-go/internal/pkg/correlation"
 	bootstrapContainer "github.com/edgexfoundry/go-mod-bootstrap/v2/bootstrap/container"
@@ -19,8 +17,6 @@ import (
 	"github.com/edgexfoundry/go-mod-core-contracts/v2/errors"
 	"github.com/edgexfoundry/go-mod-core-contracts/v2/models"
 	msgTypes "github.com/edgexfoundry/go-mod-messaging/v2/pkg/types"
-
-	"github.com/google/uuid"
 )
 
 // ValidateEvent validates if e is a valid event with corresponding device profile name and device name and source name
@@ -89,61 +85,61 @@ func PublishEvent(data []byte, profileName string, deviceName string, sourceName
 	}
 }
 
-func EventById(id string, dic *di.Container) (dtos.Event, errors.EdgeX) {
-	if id == "" {
-		return dtos.Event{}, errors.NewCommonEdgeX(errors.KindInvalidId, "id is empty", nil)
-	}
-	_, err := uuid.Parse(id)
-	if err != nil {
-		return dtos.Event{}, errors.NewCommonEdgeX(errors.KindInvalidId, "fail to parse id as an UUID", err)
-	}
-
-	dbClient := container.DBClientFrom(dic.Get)
-
-	event, err := dbClient.EventById(id)
-	if err != nil {
-		return dtos.Event{}, errors.NewCommonEdgeXWrapper(err)
-	}
-
-	eventDTO := dtos.FromEventModelToDTO(event)
-	return eventDTO, nil
-}
-
-// The DeleteEventById function accepts event id from the controller functions
-// and invokes DeleteEventById function in the infrastructure layer to remove
-// event
-func DeleteEventById(id string, dic *di.Container) errors.EdgeX {
-	if id == "" {
-		return errors.NewCommonEdgeX(errors.KindInvalidId, "id is empty", nil)
-	} else {
-		_, err := uuid.Parse(id)
-		if err != nil {
-			return errors.NewCommonEdgeX(errors.KindInvalidId, "Failed to parse ID as an UUID", err)
-		}
-	}
-
-	dbClient := container.DBClientFrom(dic.Get)
-
-	err := dbClient.DeleteEventById(id)
-	if err != nil {
-		return errors.NewCommonEdgeXWrapper(err)
-	}
-
-	return nil
-}
-
-// EventTotalCount return the count of all of events currently stored in the database and error if any
-func EventTotalCount(dic *di.Container) (uint32, errors.EdgeX) {
-	dbClient := container.DBClientFrom(dic.Get)
-
-	count, err := dbClient.EventTotalCount()
-	if err != nil {
-		return 0, errors.NewCommonEdgeXWrapper(err)
-	}
-
-	return count, nil
-}
-
+//func EventById(id string, dic *di.Container) (dtos.Event, errors.EdgeX) {
+//	if id == "" {
+//		return dtos.Event{}, errors.NewCommonEdgeX(errors.KindInvalidId, "id is empty", nil)
+//	}
+//	_, err := uuid.Parse(id)
+//	if err != nil {
+//		return dtos.Event{}, errors.NewCommonEdgeX(errors.KindInvalidId, "fail to parse id as an UUID", err)
+//	}
+//
+//	dbClient := container.DBClientFrom(dic.Get)
+//
+//	event, err := dbClient.EventById(id)
+//	if err != nil {
+//		return dtos.Event{}, errors.NewCommonEdgeXWrapper(err)
+//	}
+//
+//	eventDTO := dtos.FromEventModelToDTO(event)
+//	return eventDTO, nil
+//}
+//
+//// The DeleteEventById function accepts event id from the controller functions
+//// and invokes DeleteEventById function in the infrastructure layer to remove
+//// event
+//func DeleteEventById(id string, dic *di.Container) errors.EdgeX {
+//	if id == "" {
+//		return errors.NewCommonEdgeX(errors.KindInvalidId, "id is empty", nil)
+//	} else {
+//		_, err := uuid.Parse(id)
+//		if err != nil {
+//			return errors.NewCommonEdgeX(errors.KindInvalidId, "Failed to parse ID as an UUID", err)
+//		}
+//	}
+//
+//	dbClient := container.DBClientFrom(dic.Get)
+//
+//	err := dbClient.DeleteEventById(id)
+//	if err != nil {
+//		return errors.NewCommonEdgeXWrapper(err)
+//	}
+//
+//	return nil
+//}
+//
+//// EventTotalCount return the count of all of events currently stored in the database and error if any
+//func EventTotalCount(dic *di.Container) (uint32, errors.EdgeX) {
+//	dbClient := container.DBClientFrom(dic.Get)
+//
+//	count, err := dbClient.EventTotalCount()
+//	if err != nil {
+//		return 0, errors.NewCommonEdgeXWrapper(err)
+//	}
+//
+//	return count, nil
+//}
+//
 // EventCountByDeviceName return the count of all of events associated with given device and error if any
 func EventCountByDeviceName(deviceName string, dic *di.Container) (uint32, errors.EdgeX) {
 	dbClient := container.DBClientFrom(dic.Get)
@@ -156,38 +152,39 @@ func EventCountByDeviceName(deviceName string, dic *di.Container) (uint32, error
 	return count, nil
 }
 
-// The DeleteEventsByDeviceName function will be invoked by controller functions
-// and then invokes DeleteEventsByDeviceName function in the infrastructure layer to remove
-// all events/readings that are associated with the given deviceName
-func DeleteEventsByDeviceName(deviceName string, dic *di.Container) errors.EdgeX {
-	if len(strings.TrimSpace(deviceName)) <= 0 {
-		return errors.NewCommonEdgeX(errors.KindInvalidId, "blank device name is not allowed", nil)
-	}
-	dbClient := container.DBClientFrom(dic.Get)
-
-	err := dbClient.DeleteEventsByDeviceName(deviceName)
-	if err != nil {
-		return errors.NewCommonEdgeXWrapper(err)
-	}
-	return nil
-}
-
-// AllEvents query events by offset and limit
-func AllEvents(offset int, limit int, dic *di.Container) (events []dtos.Event, totalCount uint32, err errors.EdgeX) {
-	dbClient := container.DBClientFrom(dic.Get)
-	eventModels, err := dbClient.AllEvents(offset, limit)
-	if err == nil {
-		totalCount, err = dbClient.EventTotalCount()
-	}
-	if err != nil {
-		return events, totalCount, errors.NewCommonEdgeXWrapper(err)
-	}
-	events = make([]dtos.Event, len(eventModels))
-	for i, e := range eventModels {
-		events[i] = dtos.FromEventModelToDTO(e)
-	}
-	return events, totalCount, nil
-}
+//
+//// The DeleteEventsByDeviceName function will be invoked by controller functions
+//// and then invokes DeleteEventsByDeviceName function in the infrastructure layer to remove
+//// all events/readings that are associated with the given deviceName
+//func DeleteEventsByDeviceName(deviceName string, dic *di.Container) errors.EdgeX {
+//	if len(strings.TrimSpace(deviceName)) <= 0 {
+//		return errors.NewCommonEdgeX(errors.KindInvalidId, "blank device name is not allowed", nil)
+//	}
+//	dbClient := container.DBClientFrom(dic.Get)
+//
+//	err := dbClient.DeleteEventsByDeviceName(deviceName)
+//	if err != nil {
+//		return errors.NewCommonEdgeXWrapper(err)
+//	}
+//	return nil
+//}
+//
+//// AllEvents query events by offset and limit
+//func AllEvents(offset int, limit int, dic *di.Container) (events []dtos.Event, totalCount uint32, err errors.EdgeX) {
+//	dbClient := container.DBClientFrom(dic.Get)
+//	eventModels, err := dbClient.AllEvents(offset, limit)
+//	if err == nil {
+//		totalCount, err = dbClient.EventTotalCount()
+//	}
+//	if err != nil {
+//		return events, totalCount, errors.NewCommonEdgeXWrapper(err)
+//	}
+//	events = make([]dtos.Event, len(eventModels))
+//	for i, e := range eventModels {
+//		events[i] = dtos.FromEventModelToDTO(e)
+//	}
+//	return events, totalCount, nil
+//}
 
 // EventsByDeviceName query events with offset, limit and name
 func EventsByDeviceName(offset int, limit int, name string, dic *di.Container) (events []dtos.Event, totalCount uint32, err errors.EdgeX) {
@@ -214,32 +211,32 @@ func EventsByDeviceName(offset int, limit int, name string, dic *di.Container) (
 	return events, totalCount, nil
 }
 
-// EventsByTimeRange query events with offset, limit and time range
-func EventsByTimeRange(startTime int, endTime int, offset int, limit int, dic *di.Container) (events []dtos.Event, totalCount uint32, err errors.EdgeX) {
-	dbClient := container.DBClientFrom(dic.Get)
-	eventModels, err := dbClient.EventsByTimeRange(startTime, endTime, offset, limit)
-	if err == nil {
-		totalCount, err = dbClient.EventCountByTimeRange(startTime, endTime)
-	}
-	if err != nil {
-		return events, totalCount, errors.NewCommonEdgeXWrapper(err)
-	}
-	events = make([]dtos.Event, len(eventModels))
-	for i, e := range eventModels {
-		events[i] = dtos.FromEventModelToDTO(e)
-	}
-	return events, totalCount, nil
-}
-
-// The DeleteEventsByAge function will be invoked by controller functions
-// and then invokes DeleteEventsByAge function in the infrastructure layer to remove
-// events that are older than age.  Age is supposed in milliseconds since created timestamp.
-func DeleteEventsByAge(age int64, dic *di.Container) errors.EdgeX {
-	dbClient := container.DBClientFrom(dic.Get)
-
-	err := dbClient.DeleteEventsByAge(age)
-	if err != nil {
-		return errors.NewCommonEdgeXWrapper(err)
-	}
-	return nil
-}
+//// EventsByTimeRange query events with offset, limit and time range
+//func EventsByTimeRange(startTime int, endTime int, offset int, limit int, dic *di.Container) (events []dtos.Event, totalCount uint32, err errors.EdgeX) {
+//	dbClient := container.DBClientFrom(dic.Get)
+//	eventModels, err := dbClient.EventsByTimeRange(startTime, endTime, offset, limit)
+//	if err == nil {
+//		totalCount, err = dbClient.EventCountByTimeRange(startTime, endTime)
+//	}
+//	if err != nil {
+//		return events, totalCount, errors.NewCommonEdgeXWrapper(err)
+//	}
+//	events = make([]dtos.Event, len(eventModels))
+//	for i, e := range eventModels {
+//		events[i] = dtos.FromEventModelToDTO(e)
+//	}
+//	return events, totalCount, nil
+//}
+//
+//// The DeleteEventsByAge function will be invoked by controller functions
+//// and then invokes DeleteEventsByAge function in the infrastructure layer to remove
+//// events that are older than age.  Age is supposed in milliseconds since created timestamp.
+//func DeleteEventsByAge(age int64, dic *di.Container) errors.EdgeX {
+//	dbClient := container.DBClientFrom(dic.Get)
+//
+//	err := dbClient.DeleteEventsByAge(age)
+//	if err != nil {
+//		return errors.NewCommonEdgeXWrapper(err)
+//	}
+//	return nil
+//}

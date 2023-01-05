@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"math"
 	"net/http"
-	"strconv"
 	"strings"
 	"sync"
 
@@ -20,8 +19,6 @@ import (
 	commonDTO "github.com/edgexfoundry/go-mod-core-contracts/v2/dtos/common"
 	requestDTO "github.com/edgexfoundry/go-mod-core-contracts/v2/dtos/requests"
 	responseDTO "github.com/edgexfoundry/go-mod-core-contracts/v2/dtos/responses"
-	"github.com/edgexfoundry/go-mod-core-contracts/v2/errors"
-
 	"github.com/gorilla/mux"
 )
 
@@ -103,68 +100,68 @@ func (ec *EventController) AddEvent(w http.ResponseWriter, r *http.Request) {
 	pkg.Encode(response, w, lc)
 }
 
-func (ec *EventController) EventById(w http.ResponseWriter, r *http.Request) {
-	// retrieve all the service injections from bootstrap
-	lc := container.LoggingClientFrom(ec.dic.Get)
-
-	ctx := r.Context()
-
-	// URL parameters
-	vars := mux.Vars(r)
-	id := vars[common.Id]
-
-	// Get the event
-	e, err := application.EventById(id, ec.dic)
-	if err != nil {
-		utils.WriteErrorResponse(w, ctx, lc, err, "")
-		return
-	}
-
-	response := responseDTO.NewEventResponse("", "", http.StatusOK, e)
-	utils.WriteHttpHeader(w, ctx, http.StatusOK)
-	// encode and send out the response
-	pkg.Encode(response, w, lc)
-}
-
-func (ec *EventController) DeleteEventById(w http.ResponseWriter, r *http.Request) {
-	// retrieve all the service injections from bootstrap
-	lc := container.LoggingClientFrom(ec.dic.Get)
-
-	ctx := r.Context()
-
-	// URL parameters
-	vars := mux.Vars(r)
-	id := vars[common.Id]
-
-	// Delete the event
-	err := application.DeleteEventById(id, ec.dic)
-	if err != nil {
-		utils.WriteErrorResponse(w, ctx, lc, err, "")
-		return
-	}
-
-	response := commonDTO.NewBaseResponse("", "", http.StatusOK)
-	utils.WriteHttpHeader(w, ctx, http.StatusOK)
-	// encode and send out the response
-	pkg.Encode(response, w, lc)
-}
-
-func (ec *EventController) EventTotalCount(w http.ResponseWriter, r *http.Request) {
-	// retrieve all the service injections from bootstrap
-	lc := container.LoggingClientFrom(ec.dic.Get)
-	ctx := r.Context()
-
-	// Count the event
-	count, err := application.EventTotalCount(ec.dic)
-	if err != nil {
-		utils.WriteErrorResponse(w, ctx, lc, err, "")
-		return
-	}
-
-	response := commonDTO.NewCountResponse("", "", http.StatusOK, count)
-	utils.WriteHttpHeader(w, ctx, http.StatusOK)
-	pkg.Encode(response, w, lc) // encode and send out the response
-}
+//func (ec *EventController) EventById(w http.ResponseWriter, r *http.Request) {
+//	// retrieve all the service injections from bootstrap
+//	lc := container.LoggingClientFrom(ec.dic.Get)
+//
+//	ctx := r.Context()
+//
+//	// URL parameters
+//	vars := mux.Vars(r)
+//	id := vars[common.Id]
+//
+//	// Get the event
+//	e, err := application.EventById(id, ec.dic)
+//	if err != nil {
+//		utils.WriteErrorResponse(w, ctx, lc, err, "")
+//		return
+//	}
+//
+//	response := responseDTO.NewEventResponse("", "", http.StatusOK, e)
+//	utils.WriteHttpHeader(w, ctx, http.StatusOK)
+//	// encode and send out the response
+//	pkg.Encode(response, w, lc)
+//}
+//
+//func (ec *EventController) DeleteEventById(w http.ResponseWriter, r *http.Request) {
+//	// retrieve all the service injections from bootstrap
+//	lc := container.LoggingClientFrom(ec.dic.Get)
+//
+//	ctx := r.Context()
+//
+//	// URL parameters
+//	vars := mux.Vars(r)
+//	id := vars[common.Id]
+//
+//	// Delete the event
+//	err := application.DeleteEventById(id, ec.dic)
+//	if err != nil {
+//		utils.WriteErrorResponse(w, ctx, lc, err, "")
+//		return
+//	}
+//
+//	response := commonDTO.NewBaseResponse("", "", http.StatusOK)
+//	utils.WriteHttpHeader(w, ctx, http.StatusOK)
+//	// encode and send out the response
+//	pkg.Encode(response, w, lc)
+//}
+//
+//func (ec *EventController) EventTotalCount(w http.ResponseWriter, r *http.Request) {
+//	// retrieve all the service injections from bootstrap
+//	lc := container.LoggingClientFrom(ec.dic.Get)
+//	ctx := r.Context()
+//
+//	// Count the event
+//	count, err := application.EventTotalCount(ec.dic)
+//	if err != nil {
+//		utils.WriteErrorResponse(w, ctx, lc, err, "")
+//		return
+//	}
+//
+//	response := commonDTO.NewCountResponse("", "", http.StatusOK, count)
+//	utils.WriteHttpHeader(w, ctx, http.StatusOK)
+//	pkg.Encode(response, w, lc) // encode and send out the response
+//}
 
 func (ec *EventController) EventCountByDeviceName(w http.ResponseWriter, r *http.Request) {
 	// retrieve all the service injections from bootstrap
@@ -187,26 +184,26 @@ func (ec *EventController) EventCountByDeviceName(w http.ResponseWriter, r *http
 	pkg.Encode(response, w, lc) // encode and send out the response
 }
 
-func (ec *EventController) AllEvents(w http.ResponseWriter, r *http.Request) {
-	lc := container.LoggingClientFrom(ec.dic.Get)
-	ctx := r.Context()
-	config := dataContainer.ConfigurationFrom(ec.dic.Get)
-
-	// parse URL query string for offset, limit
-	offset, limit, _, err := utils.ParseGetAllObjectsRequestQueryString(r, 0, math.MaxInt32, -1, config.Service.MaxResultCount)
-	if err != nil {
-		utils.WriteErrorResponse(w, ctx, lc, err, "")
-		return
-	}
-	events, totalCount, err := application.AllEvents(offset, limit, ec.dic)
-	if err != nil {
-		utils.WriteErrorResponse(w, ctx, lc, err, "")
-		return
-	}
-	response := responseDTO.NewMultiEventsResponse("", "", http.StatusOK, totalCount, events)
-	utils.WriteHttpHeader(w, ctx, http.StatusOK)
-	pkg.Encode(response, w, lc)
-}
+//func (ec *EventController) AllEvents(w http.ResponseWriter, r *http.Request) {
+//	lc := container.LoggingClientFrom(ec.dic.Get)
+//	ctx := r.Context()
+//	config := dataContainer.ConfigurationFrom(ec.dic.Get)
+//
+//	// parse URL query string for offset, limit
+//	offset, limit, _, err := utils.ParseGetAllObjectsRequestQueryString(r, 0, math.MaxInt32, -1, config.Service.MaxResultCount)
+//	if err != nil {
+//		utils.WriteErrorResponse(w, ctx, lc, err, "")
+//		return
+//	}
+//	events, totalCount, err := application.AllEvents(offset, limit, ec.dic)
+//	if err != nil {
+//		utils.WriteErrorResponse(w, ctx, lc, err, "")
+//		return
+//	}
+//	response := responseDTO.NewMultiEventsResponse("", "", http.StatusOK, totalCount, events)
+//	utils.WriteHttpHeader(w, ctx, http.StatusOK)
+//	pkg.Encode(response, w, lc)
+//}
 
 func (ec *EventController) EventsByDeviceName(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("**event.go** EventsByDeviceName() is called@@@@@")
@@ -234,70 +231,70 @@ func (ec *EventController) EventsByDeviceName(w http.ResponseWriter, r *http.Req
 	pkg.Encode(response, w, lc)
 }
 
-func (ec *EventController) DeleteEventsByDeviceName(w http.ResponseWriter, r *http.Request) {
-	// retrieve all the service injections from bootstrap
-	lc := container.LoggingClientFrom(ec.dic.Get)
-
-	ctx := r.Context()
-	vars := mux.Vars(r)
-	deviceName := vars[common.Name]
-
-	// Delete events with associated Device deviceName
-	err := application.DeleteEventsByDeviceName(deviceName, ec.dic)
-	if err != nil {
-		utils.WriteErrorResponse(w, ctx, lc, err, "")
-		return
-	}
-
-	response := commonDTO.NewBaseResponse("", "", http.StatusAccepted)
-	utils.WriteHttpHeader(w, ctx, http.StatusAccepted)
-	// encode and send out the response
-	pkg.Encode(response, w, lc)
-}
-
-func (ec *EventController) EventsByTimeRange(w http.ResponseWriter, r *http.Request) {
-	lc := container.LoggingClientFrom(ec.dic.Get)
-	ctx := r.Context()
-	config := dataContainer.ConfigurationFrom(ec.dic.Get)
-
-	// parse time range (start, end), offset, and limit from incoming request
-	start, end, offset, limit, err := utils.ParseTimeRangeOffsetLimit(r, 0, math.MaxInt32, -1, config.Service.MaxResultCount)
-	if err != nil {
-		utils.WriteErrorResponse(w, ctx, lc, err, "")
-		return
-	}
-	events, totalCount, err := application.EventsByTimeRange(start, end, offset, limit, ec.dic)
-	if err != nil {
-		utils.WriteErrorResponse(w, ctx, lc, err, "")
-		return
-	}
-
-	response := responseDTO.NewMultiEventsResponse("", "", http.StatusOK, totalCount, events)
-	utils.WriteHttpHeader(w, ctx, http.StatusOK)
-	pkg.Encode(response, w, lc)
-}
-
-func (ec *EventController) DeleteEventsByAge(w http.ResponseWriter, r *http.Request) {
-	// retrieve all the service injections from bootstrap
-	lc := container.LoggingClientFrom(ec.dic.Get)
-	ctx := r.Context()
-
-	vars := mux.Vars(r)
-	age, parsingErr := strconv.ParseInt(vars[common.Age], 10, 64)
-
-	if parsingErr != nil {
-		err := errors.NewCommonEdgeX(errors.KindContractInvalid, "age format parsing failed", parsingErr)
-		utils.WriteErrorResponse(w, ctx, lc, err, "")
-		return
-	}
-	err := application.DeleteEventsByAge(age, ec.dic)
-	if err != nil {
-		utils.WriteErrorResponse(w, ctx, lc, err, "")
-		return
-	}
-
-	response := commonDTO.NewBaseResponse("", "", http.StatusAccepted)
-	utils.WriteHttpHeader(w, ctx, http.StatusAccepted)
-	// encode and send out the response
-	pkg.Encode(response, w, lc)
-}
+//func (ec *EventController) DeleteEventsByDeviceName(w http.ResponseWriter, r *http.Request) {
+//	// retrieve all the service injections from bootstrap
+//	lc := container.LoggingClientFrom(ec.dic.Get)
+//
+//	ctx := r.Context()
+//	vars := mux.Vars(r)
+//	deviceName := vars[common.Name]
+//
+//	// Delete events with associated Device deviceName
+//	err := application.DeleteEventsByDeviceName(deviceName, ec.dic)
+//	if err != nil {
+//		utils.WriteErrorResponse(w, ctx, lc, err, "")
+//		return
+//	}
+//
+//	response := commonDTO.NewBaseResponse("", "", http.StatusAccepted)
+//	utils.WriteHttpHeader(w, ctx, http.StatusAccepted)
+//	// encode and send out the response
+//	pkg.Encode(response, w, lc)
+//}
+//
+//func (ec *EventController) EventsByTimeRange(w http.ResponseWriter, r *http.Request) {
+//	lc := container.LoggingClientFrom(ec.dic.Get)
+//	ctx := r.Context()
+//	config := dataContainer.ConfigurationFrom(ec.dic.Get)
+//
+//	// parse time range (start, end), offset, and limit from incoming request
+//	start, end, offset, limit, err := utils.ParseTimeRangeOffsetLimit(r, 0, math.MaxInt32, -1, config.Service.MaxResultCount)
+//	if err != nil {
+//		utils.WriteErrorResponse(w, ctx, lc, err, "")
+//		return
+//	}
+//	events, totalCount, err := application.EventsByTimeRange(start, end, offset, limit, ec.dic)
+//	if err != nil {
+//		utils.WriteErrorResponse(w, ctx, lc, err, "")
+//		return
+//	}
+//
+//	response := responseDTO.NewMultiEventsResponse("", "", http.StatusOK, totalCount, events)
+//	utils.WriteHttpHeader(w, ctx, http.StatusOK)
+//	pkg.Encode(response, w, lc)
+//}
+//
+//func (ec *EventController) DeleteEventsByAge(w http.ResponseWriter, r *http.Request) {
+//	// retrieve all the service injections from bootstrap
+//	lc := container.LoggingClientFrom(ec.dic.Get)
+//	ctx := r.Context()
+//
+//	vars := mux.Vars(r)
+//	age, parsingErr := strconv.ParseInt(vars[common.Age], 10, 64)
+//
+//	if parsingErr != nil {
+//		err := errors.NewCommonEdgeX(errors.KindContractInvalid, "age format parsing failed", parsingErr)
+//		utils.WriteErrorResponse(w, ctx, lc, err, "")
+//		return
+//	}
+//	err := application.DeleteEventsByAge(age, ec.dic)
+//	if err != nil {
+//		utils.WriteErrorResponse(w, ctx, lc, err, "")
+//		return
+//	}
+//
+//	response := commonDTO.NewBaseResponse("", "", http.StatusAccepted)
+//	utils.WriteHttpHeader(w, ctx, http.StatusAccepted)
+//	// encode and send out the response
+//	pkg.Encode(response, w, lc)
+//}
