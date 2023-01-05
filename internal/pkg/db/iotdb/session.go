@@ -468,32 +468,22 @@ func (s *Session) ExecuteNonQueryStatement(sql string) (r *rpc.TSStatus, err err
 func (s *Session) ExecuteQueryStatement(sql string, timeoutMs *int64) (*SessionDataSet, error) {
 	request := rpc.TSExecuteStatementReq{SessionId: s.sessionId, Statement: sql, StatementId: s.requestStatementId,
 		FetchSize: &s.config.FetchSize, Timeout: timeoutMs}
-	fmt.Println("**session.go** ExecuteQueryStatement() -> start")
 	if resp, err := s.client.ExecuteQueryStatement(context.Background(), &request); err == nil {
-		fmt.Println("**session.go** ExecuteQueryStatement() -> case1")
 		if statusErr := VerifySuccess(resp.Status); statusErr == nil {
-			fmt.Println("**session.go** ExecuteQueryStatement() -> case1-1")
 			return NewSessionDataSet(sql, resp.Columns, resp.DataTypeList, resp.ColumnNameIndexMap, *resp.QueryId, s.client, s.sessionId, resp.QueryDataSet, resp.IgnoreTimeStamp != nil && *resp.IgnoreTimeStamp, s.config.FetchSize, timeoutMs), err
 		} else {
-			fmt.Println("**session.go** ExecuteQueryStatement() -> case1-2")
 			return nil, statusErr
 		}
 	} else {
-		fmt.Println("**session.go** ExecuteQueryStatement() -> case2")
 		if s.reconnect() {
-			fmt.Println("**session.go** ExecuteQueryStatement() -> case2-1")
 			request.SessionId = s.sessionId
 			resp, err = s.client.ExecuteQueryStatement(context.Background(), &request)
-			fmt.Println("**session.go** ExecuteQueryStatement() -> case2-2")
 			if statusErr := VerifySuccess(resp.Status); statusErr == nil {
-				fmt.Println("**session.go** ExecuteQueryStatement() -> Case2-2-1")
 				return NewSessionDataSet(sql, resp.Columns, resp.DataTypeList, resp.ColumnNameIndexMap, *resp.QueryId, s.client, s.sessionId, resp.QueryDataSet, resp.IgnoreTimeStamp != nil && *resp.IgnoreTimeStamp, s.config.FetchSize, timeoutMs), err
 			} else {
-				fmt.Println("**session.go** ExecuteQueryStatement() -> Case2-2-2")
 				return nil, statusErr
 			}
 		}
-		fmt.Println("**session.go** ExecuteQueryStatement() -> OUT CASE")
 		return nil, err
 	}
 }
@@ -1125,10 +1115,10 @@ func NewSession(config db.Configuration, lc logger.LoggingClient) (*Session, err
 		endPointList.PushBack(endPoint)
 
 		conf := &Config{
-			Host:     config.Host,
-			Port:     endPoint.Port,
-			UserName: config.Username,
-			Password: config.Password,
+			Host:     "127.0.0.1",
+			Port:     "6667",
+			UserName: "root",
+			Password: "root",
 		}
 
 		currSession = &Session{

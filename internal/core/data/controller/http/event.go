@@ -2,7 +2,6 @@ package http
 
 import (
 	"bytes"
-	"fmt"
 	"math"
 	"net/http"
 	"strings"
@@ -206,7 +205,6 @@ func (ec *EventController) EventCountByDeviceName(w http.ResponseWriter, r *http
 //}
 
 func (ec *EventController) EventsByDeviceName(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("**event.go** EventsByDeviceName() is called@@@@@")
 	lc := container.LoggingClientFrom(ec.dic.Get)
 	ctx := r.Context()
 	config := dataContainer.ConfigurationFrom(ec.dic.Get)

@@ -191,19 +191,14 @@ func EventsByDeviceName(offset int, limit int, name string, dic *di.Container) (
 	if name == "" {
 		return events, totalCount, errors.NewCommonEdgeX(errors.KindContractInvalid, "name is empty", nil)
 	}
-	fmt.Println("**app/event.go** EventsByDeviceName() is callled, name: " + name)
 	dbClient := container.DBClientFrom(dic.Get)
-	fmt.Println("**app/event.go** step 1")
 	eventModels, err := dbClient.EventsByDeviceName(offset, limit, name)
-	fmt.Println("**app/event.go** step 2")
 	if err == nil {
-		fmt.Println("**app/event.go** step T_T")
 		totalCount, err = dbClient.EventCountByDeviceName(name)
 	}
 	if err != nil {
 		return events, totalCount, errors.NewCommonEdgeXWrapper(err)
 	}
-	fmt.Println("**app/event.go** step 3")
 	events = make([]dtos.Event, len(eventModels))
 	for i, e := range eventModels {
 		events[i] = dtos.FromEventModelToDTO(e)

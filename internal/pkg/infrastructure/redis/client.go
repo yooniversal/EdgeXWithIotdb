@@ -84,24 +84,22 @@ func ChangeTypeToEvent(sessionDataSet *iotdbClient.SessionDataSet) (event model.
 
 // EventsByDeviceName gets an event by deviceName
 func (c *Client) EventsByDeviceName(offset int, limit int, name string) (events []model.Event, edgeXerr errors.EdgeX) {
-	fmt.Println("**client.go** EventsByDeviceName() is called!!! name: " + name)
 	var sql = "select * from " + name
 	var timeout int64 = 1000
-	sessionDataSet, err := c.ExecuteQueryStatement(sql, &timeout)
-	fmt.Println("**client.go** session pass step 1")
-	event := ChangeTypeToEvent(sessionDataSet)
-	fmt.Println("**client.go** session pass step 2")
-	sessionDataSet.Close()
-	fmt.Println("**client.go** session pass step 3")
+	sessionDataSet, _ := c.ExecuteQueryStatement(sql, &timeout)
 
-	events = append(events, event)
-
-	edgeXerr = errors.NewCommonEdgeX(errors.KindUnknown, fmt.Sprintf(err.Error()), err)
-	if edgeXerr != nil {
-		return events, errors.NewCommonEdgeXWrapper(edgeXerr)
+	if cnt := sessionDataSet.GetColumnCount(); cnt > 0 {
+		event := ChangeTypeToEvent(sessionDataSet)
+		events = append(events, event)
 	}
+	//	sessionDataSet.Close()
 
-	return
+	//edgeXerr = errors.NewCommonEdgeX(errors.KindUnknown, fmt.Sprintf(err.Error()), err)
+	//if edgeXerr != nil {
+	//	return events, errors.NewCommonEdgeXWrapper(edgeXerr)
+	//}
+
+	return events, nil
 }
 
 // EventCountByDeviceName returns the count of Event associated a specific Device from the database
