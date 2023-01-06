@@ -194,7 +194,8 @@ func EventsByDeviceName(offset int, limit int, name string, dic *di.Container) (
 	dbClient := container.DBClientFrom(dic.Get)
 	eventModels, err := dbClient.EventsByDeviceName(offset, limit, name)
 	if err == nil {
-		totalCount, err = dbClient.EventCountByDeviceName(name)
+		totalCount = uint32(len(eventModels))
+		//totalCount, err = dbClient.EventCountByDeviceName(name)
 	}
 	if err != nil {
 		return events, totalCount, errors.NewCommonEdgeXWrapper(err)

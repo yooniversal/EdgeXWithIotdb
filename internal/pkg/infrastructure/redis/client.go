@@ -8,6 +8,7 @@ package redis
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	//"github.com/go-redis/redis/v7"
 	"strconv"
 
@@ -46,27 +47,33 @@ func (c *Client) AddEvent(e model.Event) (model.Event, errors.EdgeX) {
 		}
 	}
 
+	e.DeviceName = e.DeviceName + ".sg27"
 	// model.Event -> iotdbClient.Tablet
-	tablet, err := iotdbClient.NewTablet(e.DeviceName, []*iotdbClient.MeasurementSchema{
+	tablet, _ := iotdbClient.NewTablet(e.DeviceName, []*iotdbClient.MeasurementSchema{
 		{
-			Measurement: "device",
-			DataType:    iotdbClient.INT32,
-			Encoding:    iotdbClient.RLE,
+			Measurement: "deviceName",
+			DataType:    iotdbClient.TEXT,
+			Encoding:    iotdbClient.PLAIN,
 			Compressor:  iotdbClient.SNAPPY,
 		},
 	}, 1)
 	tablet.SetTimestamp(e.Origin, 0)
+	tablet.SetValueAt(e.DeviceName, 0, 0)
 
 	c.InsertTablet(tablet, false)
 
-	edgeXerr := errors.NewCommonEdgeX(errors.KindUnknown, fmt.Sprintf(err.Error()), err)
-	return e, edgeXerr
+	//edgeXerr := errors.NewCommonEdgeX(errors.KindUnknown, fmt.Sprintf(err.Error()), err)
+	return e, nil
 }
 
 // IoTDBRpcDataSet -> model.Event
 // Use json.Unmarshal() for type changing from byte[] to model.Event
 func ChangeTypeToEvent(sessionDataSet *iotdbClient.SessionDataSet) (event model.Event) {
-	deviceName := sessionDataSet.GetColumnName(0)
+	var deviceName string
+	if err := sessionDataSet.Scan(&deviceName); err != nil {
+		log.Fatal(err)
+	}
+	//deviceName := sessionDataSet.GetColumnName(0)
 	time := strconv.FormatInt(sessionDataSet.GetTimestamp(), 10)
 	data := "[" +
 		"{\"DeviceName\": \"" + deviceName + "\", \"time\": \"" + time + "\"}," +
@@ -84,7 +91,7 @@ func ChangeTypeToEvent(sessionDataSet *iotdbClient.SessionDataSet) (event model.
 
 // EventsByDeviceName gets an event by deviceName
 func (c *Client) EventsByDeviceName(offset int, limit int, name string) (events []model.Event, edgeXerr errors.EdgeX) {
-	var sql = "select * from " + name
+	var sql = "select * from " + name + ".sg27"
 	var timeout int64 = 1000
 	sessionDataSet, _ := c.ExecuteQueryStatement(sql, &timeout)
 

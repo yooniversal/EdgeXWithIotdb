@@ -197,9 +197,9 @@ func (s *IoTDBRpcDataSet) getValue(columnName string) interface{} {
 		return nil
 	}
 	columnIndex := int(s.getColumnIndex(columnName))
-	if s.isNull(columnIndex, s.rowsIndex-1) {
-		return nil
-	}
+	//	if s.isNull(columnIndex, s.rowsIndex-1) {
+	//		return nil
+	//	}
 
 	dataType := s.getColumnType(columnName)
 	valueBytes := s.values[columnIndex]
@@ -269,9 +269,9 @@ func (s *IoTDBRpcDataSet) scan(dest ...interface{}) error {
 	for i := 0; i < count; i++ {
 		columnName := s.columnNameList[i]
 		columnIndex := int(s.getColumnIndex(columnName))
-		if s.isNull(columnIndex, s.rowsIndex-1) {
-			continue
-		}
+		//if s.isNull(columnIndex, s.rowsIndex-1) {
+		//	continue
+		//}
 
 		dataType := s.getColumnType(columnName)
 		d := dest[i]
