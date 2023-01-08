@@ -6,11 +6,10 @@
 package redis
 
 import (
-	"encoding/json"
 	"fmt"
-	"log"
+	//"log"
 	//"github.com/go-redis/redis/v7"
-	"strconv"
+	//"strconv"
 
 	"github.com/edgexfoundry/edgex-go/internal/pkg/db"
 	iotdbClient "github.com/edgexfoundry/edgex-go/internal/pkg/db/iotdb"
@@ -47,20 +46,14 @@ func (c *Client) AddEvent(e model.Event) (model.Event, errors.EdgeX) {
 		}
 	}
 
-	e.DeviceName = e.DeviceName + ".sg27"
-	// model.Event -> iotdbClient.Tablet
-	tablet, _ := iotdbClient.NewTablet(e.DeviceName, []*iotdbClient.MeasurementSchema{
-		{
-			Measurement: "deviceName",
-			DataType:    iotdbClient.TEXT,
-			Encoding:    iotdbClient.PLAIN,
-			Compressor:  iotdbClient.SNAPPY,
-		},
-	}, 1)
-	tablet.SetTimestamp(e.Origin, 0)
-	tablet.SetValueAt(e.DeviceName, 0, 0)
-
-	c.InsertTablet(tablet, false)
+	var (
+		deviceId           = e.DeviceName + ".sg27"
+		measurements       = []string{"deviceName"}
+		values             = []interface{}{e.DeviceName}
+		dataTypes          = []iotdbClient.TSDataType{iotdbClient.TEXT}
+		timestamp    int64 = 12
+	)
+	c.InsertRecord(deviceId, measurements, dataTypes, values, timestamp)
 
 	//edgeXerr := errors.NewCommonEdgeX(errors.KindUnknown, fmt.Sprintf(err.Error()), err)
 	return e, nil
@@ -70,21 +63,18 @@ func (c *Client) AddEvent(e model.Event) (model.Event, errors.EdgeX) {
 // Use json.Unmarshal() for type changing from byte[] to model.Event
 func ChangeTypeToEvent(sessionDataSet *iotdbClient.SessionDataSet) (event model.Event) {
 	var deviceName string
-	if err := sessionDataSet.Scan(&deviceName); err != nil {
-		log.Fatal(err)
-	}
-	//deviceName := sessionDataSet.GetColumnName(0)
-	time := strconv.FormatInt(sessionDataSet.GetTimestamp(), 10)
-	data := "[" +
-		"{\"DeviceName\": \"" + deviceName + "\", \"time\": \"" + time + "\"}," +
-		"]"
+	columnName := sessionDataSet.GetColumnName(0)
 
-	var jsonBlob = []byte(data)
-
-	err := json.Unmarshal(jsonBlob, &event)
-	if err != nil {
-		fmt.Println("error:", err)
+	switch sessionDataSet.GetColumnDataType(0) {
+	case iotdbClient.TEXT:
+		deviceName = sessionDataSet.GetText(columnName)
+	default:
+		fmt.Println("[ChangeTypeToEvent()] TYPE ERROR")
 	}
+	time := sessionDataSet.GetText(iotdbClient.TimestampColumnName)
+
+	event.DeviceName = deviceName
+	event.SourceName = time
 
 	return
 }

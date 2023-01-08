@@ -379,13 +379,13 @@ func (s *IoTDBRpcDataSet) getInt32(columnName string) int32 {
 		return 0
 	}
 	columnIndex := s.getColumnIndex(columnName)
-	if !s.isNull(int(columnIndex), s.rowsIndex-1) {
-		s.lastReadWasNull = false
-		return bytesToInt32(s.values[columnIndex])
-	}
+	//if !s.isNull(int(columnIndex), s.rowsIndex-1) {
+	s.lastReadWasNull = false
+	return bytesToInt32(s.values[columnIndex])
+	//}
 
-	s.lastReadWasNull = true
-	return 0
+	//s.lastReadWasNull = true
+	//return 0
 }
 
 func (s *IoTDBRpcDataSet) getInt64(columnName string) int64 {
