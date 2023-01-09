@@ -70,6 +70,14 @@ type IoTDBRpcDataSet struct {
 	timeoutMs                  *int64
 }
 
+func (s *IoTDBRpcDataSet) getValuesInfo() {
+	for i := 0; i < len(s.values); i++ {
+		value_string := string(s.values[i])
+		fmt.Printf("[getValueInfo] len:%d values[%d] string:%s byte:%X\n", len(value_string), i, value_string, s.values[i])
+	}
+	fmt.Println("[getValueInfo] finished")
+}
+
 func (s *IoTDBRpcDataSet) getColumnIndex(columnName string) int32 {
 	if s.closed {
 		return -1
@@ -197,9 +205,9 @@ func (s *IoTDBRpcDataSet) getValue(columnName string) interface{} {
 		return nil
 	}
 	columnIndex := int(s.getColumnIndex(columnName))
-	//	if s.isNull(columnIndex, s.rowsIndex-1) {
-	//		return nil
-	//	}
+	if s.isNull(columnIndex, s.rowsIndex-1) {
+		return nil
+	}
 
 	dataType := s.getColumnType(columnName)
 	valueBytes := s.values[columnIndex]
@@ -269,9 +277,9 @@ func (s *IoTDBRpcDataSet) scan(dest ...interface{}) error {
 	for i := 0; i < count; i++ {
 		columnName := s.columnNameList[i]
 		columnIndex := int(s.getColumnIndex(columnName))
-		//if s.isNull(columnIndex, s.rowsIndex-1) {
-		//	continue
-		//}
+		if s.isNull(columnIndex, s.rowsIndex-1) {
+			continue
+		}
 
 		dataType := s.getColumnType(columnName)
 		d := dest[i]
@@ -379,13 +387,13 @@ func (s *IoTDBRpcDataSet) getInt32(columnName string) int32 {
 		return 0
 	}
 	columnIndex := s.getColumnIndex(columnName)
-	//if !s.isNull(int(columnIndex), s.rowsIndex-1) {
-	s.lastReadWasNull = false
-	return bytesToInt32(s.values[columnIndex])
-	//}
+	if !s.isNull(int(columnIndex), s.rowsIndex-1) {
+		s.lastReadWasNull = false
+		return bytesToInt32(s.values[columnIndex])
+	}
 
-	//s.lastReadWasNull = true
-	//return 0
+	s.lastReadWasNull = true
+	return 0
 }
 
 func (s *IoTDBRpcDataSet) getInt64(columnName string) int64 {

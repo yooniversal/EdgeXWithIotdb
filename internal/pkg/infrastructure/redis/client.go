@@ -7,7 +7,7 @@ package redis
 
 import (
 	"fmt"
-	//"log"
+	"log"
 	//"github.com/go-redis/redis/v7"
 	//"strconv"
 
@@ -48,9 +48,9 @@ func (c *Client) AddEvent(e model.Event) (model.Event, errors.EdgeX) {
 
 	var (
 		deviceId           = e.DeviceName + ".sg27"
-		measurements       = []string{"deviceName"}
-		values             = []interface{}{e.DeviceName}
-		dataTypes          = []iotdbClient.TSDataType{iotdbClient.TEXT}
+		measurements       = []string{"deviceName", "Origin"}
+		values             = []interface{}{e.DeviceName, int64(987654321)}
+		dataTypes          = []iotdbClient.TSDataType{iotdbClient.TEXT, iotdbClient.INT64}
 		timestamp    int64 = 12
 	)
 	c.InsertRecord(deviceId, measurements, dataTypes, values, timestamp)
@@ -62,19 +62,24 @@ func (c *Client) AddEvent(e model.Event) (model.Event, errors.EdgeX) {
 // IoTDBRpcDataSet -> model.Event
 // Use json.Unmarshal() for type changing from byte[] to model.Event
 func ChangeTypeToEvent(sessionDataSet *iotdbClient.SessionDataSet) (event model.Event) {
+	var origin int64
 	var deviceName string
-	columnName := sessionDataSet.GetColumnName(0)
+	for next, err := sessionDataSet.Next(); err == nil && next; next, err = sessionDataSet.Next() {
 
-	switch sessionDataSet.GetColumnDataType(0) {
-	case iotdbClient.TEXT:
-		deviceName = sessionDataSet.GetText(columnName)
-	default:
-		fmt.Println("[ChangeTypeToEvent()] TYPE ERROR")
+		if err := sessionDataSet.Scan(&origin, &deviceName); err != nil {
+			log.Fatal(err)
+		}
+
+		whitespace := "\t\t"
+		fmt.Printf("%v%s", origin, whitespace)
+		fmt.Printf("%v%s", deviceName, whitespace)
+		fmt.Println()
 	}
 	time := sessionDataSet.GetText(iotdbClient.TimestampColumnName)
 
 	event.DeviceName = deviceName
 	event.SourceName = time
+	event.Origin = origin
 
 	return
 }
