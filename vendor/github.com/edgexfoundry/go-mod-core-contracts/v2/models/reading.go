@@ -5,6 +5,10 @@
 
 package models
 
+import (
+	"fmt"
+)
+
 // BaseReading and its properties are defined in the APIv2 specification:
 // https://app.swaggerhub.com/apis-docs/EdgeXFoundry1/core-data/2.x#/BaseReading
 // Model fields are same as the DTOs documented by this swagger. Exceptions, if any, are noted below.
@@ -45,6 +49,7 @@ type ObjectReading struct {
 // Reading is an abstract interface to be implemented by BinaryReading/SimpleReading
 type Reading interface {
 	GetBaseReading() BaseReading
+	GetValue() string
 }
 
 // Implement GetBaseReading() method in order for BinaryReading and SimpleReading, ObjectReading structs to implement the
@@ -54,3 +59,7 @@ type Reading interface {
 func (b BinaryReading) GetBaseReading() BaseReading { return b.BaseReading }
 func (s SimpleReading) GetBaseReading() BaseReading { return s.BaseReading }
 func (o ObjectReading) GetBaseReading() BaseReading { return o.BaseReading }
+
+func (b BinaryReading) GetValue() string { return string(b.BinaryValue)}
+func (s SimpleReading) GetValue() string { return s.Value }
+func (o ObjectReading) GetValue() string { return fmt.Sprint("%s", o.ObjectValue) }
