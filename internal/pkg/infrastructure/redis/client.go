@@ -7,7 +7,10 @@ package redis
 
 import (
 	"fmt"
-	//"log"
+	"github.com/edgexfoundry/go-mod-core-contracts/v2/common"
+	"github.com/edgexfoundry/go-mod-core-contracts/v2/models"
+	"strings"
+
 	//"github.com/go-redis/redis/v7"
 	//"strconv"
 
@@ -46,11 +49,28 @@ func (c *Client) AddEvent(e model.Event) (model.Event, errors.EdgeX) {
 		}
 	}
 
+	var valueOfReading string
+	setValue := false
+	for _, reading := range e.Readings {
+		value := reading.GetValue()
+		fmt.Printf("[VALUE TEST] value:%s / reading.SourceName:%s event.SourceName:%s\n", value, reading.GetBaseReading().ResourceName, e.SourceName)
+		if reading.GetBaseReading().ResourceName != e.SourceName {
+			continue
+		}
+
+		valueOfReading = value
+		setValue = true
+	}
+
+	if setValue == false {
+		valueOfReading = "null"
+	}
+
 	var (
-		deviceId           = e.DeviceName + ".sg27"
-		measurements       = []string{"deviceName"}
-		values             = []interface{}{e.DeviceName}
-		dataTypes          = []iotdbClient.TSDataType{iotdbClient.TEXT}
+		deviceId           = "root." + e.ProfileName + "." + e.DeviceName
+		measurements       = []string{e.SourceName, "Id", "Origin"}
+		values             = []interface{}{valueOfReading, e.Id, e.Origin}
+		dataTypes          = []iotdbClient.TSDataType{iotdbClient.TEXT, iotdbClient.TEXT, iotdbClient.INT64}
 		timestamp    int64 = 12
 	)
 	c.InsertRecord(deviceId, measurements, dataTypes, values, timestamp)
@@ -61,33 +81,66 @@ func (c *Client) AddEvent(e model.Event) (model.Event, errors.EdgeX) {
 
 // IoTDBRpcDataSet -> model.Event
 // Use json.Unmarshal() for type changing from byte[] to model.Event
-func ChangeTypeToEvent(sessionDataSet *iotdbClient.SessionDataSet) (event model.Event) {
-	var deviceName string
-	columnName := sessionDataSet.GetColumnName(0)
+func ChangeTypeToEvent(sessionDataSet *iotdbClient.SessionDataSet) (events []model.Event) {
+	for next, err := sessionDataSet.Next(); err == nil && next; next, err = sessionDataSet.Next() {
+		for columnIndex := 0; columnIndex < sessionDataSet.GetColumnCount(); columnIndex += 3 {
+			columnNameWithResourceName := sessionDataSet.GetColumnName(columnIndex + 2)
+			columnNameWithId := sessionDataSet.GetColumnName(columnIndex + 1)
+			columnNameWithOrigin := sessionDataSet.GetColumnName(columnIndex)
+			
+			directories := strings.Split(columnNameWithResourceName, ".")
+			if directories[3] == "Id" {
+				columnNameWithResourceName, columnNameWithId = columnNameWithId, columnNameWithResourceName
+				directories = strings.Split(columnNameWithResourceName, ".")
+			}
 
-	switch sessionDataSet.GetColumnDataType(0) {
-	case iotdbClient.TEXT:
-		deviceName = sessionDataSet.GetText(columnName)
-	default:
-		fmt.Println("[ChangeTypeToEvent()] TYPE ERROR")
+			profileName := directories[1]
+			deviceName := directories[2]
+			resourceName := directories[3]
+
+			var event model.Event
+			valueOfReading := sessionDataSet.GetText(columnNameWithResourceName)
+			Id := sessionDataSet.GetText(columnNameWithId)
+			origin := sessionDataSet.GetInt64(columnNameWithOrigin)
+
+			whitespace := "\t\t"
+			fmt.Printf("%v%s", origin, whitespace)
+			fmt.Printf("%v%s", valueOfReading, whitespace)
+			fmt.Println()
+
+			event.Id = Id
+			event.ProfileName = profileName
+			event.DeviceName = deviceName
+			event.SourceName = resourceName
+			event.Origin = origin
+
+			reading := models.SimpleReading{
+				BaseReading: models.BaseReading{
+					Id:           uuid.New().String(),
+					Origin:       0,
+					DeviceName:   deviceName,
+					ResourceName: resourceName,
+					ProfileName:  profileName,
+					ValueType:    common.ValueTypeString,
+				},
+				Value: valueOfReading,
+			}
+			event.Readings = append(event.Readings, reading)
+			events = append(events, event)
+		}
 	}
-	time := sessionDataSet.GetText(iotdbClient.TimestampColumnName)
-
-	event.DeviceName = deviceName
-	event.SourceName = time
 
 	return
 }
 
 // EventsByDeviceName gets an event by deviceName
 func (c *Client) EventsByDeviceName(offset int, limit int, name string) (events []model.Event, edgeXerr errors.EdgeX) {
-	var sql = "select * from " + name + ".sg27"
+	var sql = "select * from root.*." + name
 	var timeout int64 = 1000
 	sessionDataSet, _ := c.ExecuteQueryStatement(sql, &timeout)
 
 	if cnt := sessionDataSet.GetColumnCount(); cnt > 0 {
-		event := ChangeTypeToEvent(sessionDataSet)
-		events = append(events, event)
+		events = ChangeTypeToEvent(sessionDataSet)
 	}
 	sessionDataSet.Close()
 

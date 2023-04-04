@@ -31,6 +31,10 @@ type SessionDataSet struct {
 	ioTDBRpcDataSet *IoTDBRpcDataSet
 }
 
+func (s *SessionDataSet) GetValuesInfo() {
+	s.ioTDBRpcDataSet.getValuesInfo()
+}
+
 // Next prepares the next result row for reading,
 // returns true on success, or false if there is no next result row or an error
 // appened while preparing it.
