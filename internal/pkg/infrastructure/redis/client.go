@@ -89,7 +89,7 @@ func (c *Client) EventsByDeviceName(offset int, limit int, name string) (events 
 		event := ChangeTypeToEvent(sessionDataSet)
 		events = append(events, event)
 	}
-	//	sessionDataSet.Close()
+	sessionDataSet.Close()
 
 	//edgeXerr = errors.NewCommonEdgeX(errors.KindUnknown, fmt.Sprintf(err.Error()), err)
 	//if edgeXerr != nil {
