@@ -7,9 +7,11 @@ package redis
 
 import (
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/edgexfoundry/go-mod-core-contracts/v2/common"
 	"github.com/edgexfoundry/go-mod-core-contracts/v2/models"
-	"strings"
 
 	//"github.com/go-redis/redis/v7"
 	//"strconv"
@@ -71,7 +73,7 @@ func (c *Client) AddEvent(e model.Event) (model.Event, errors.EdgeX) {
 		measurements       = []string{e.SourceName, "Id", "Origin"}
 		values             = []interface{}{valueOfReading, e.Id, e.Origin}
 		dataTypes          = []iotdbClient.TSDataType{iotdbClient.TEXT, iotdbClient.TEXT, iotdbClient.INT64}
-		timestamp    int64 = 12
+		timestamp     	= time.Now().UnixNano() / int64(time.Millisecond)
 	)
 	c.InsertRecord(deviceId, measurements, dataTypes, values, timestamp)
 
@@ -136,13 +138,14 @@ func ChangeTypeToEvent(sessionDataSet *iotdbClient.SessionDataSet) (events []mod
 // EventsByDeviceName gets an event by deviceName
 func (c *Client) EventsByDeviceName(offset int, limit int, name string) (events []model.Event, edgeXerr errors.EdgeX) {
 	var sql = "select * from root.*." + name
-	var timeout int64 = 1000
-	sessionDataSet, _ := c.ExecuteQueryStatement(sql, &timeout)
+	var timeout int64 = 200
+	sessionDataSet, err := c.ExecuteQueryStatement(sql, &timeout)
 
 	if cnt := sessionDataSet.GetColumnCount(); cnt > 0 {
 		events = ChangeTypeToEvent(sessionDataSet)
 	}
-	sessionDataSet.Close()
+	fmt.Println(err)
+	// sessionDataSet.Close()
 
 	//edgeXerr = errors.NewCommonEdgeX(errors.KindUnknown, fmt.Sprintf(err.Error()), err)
 	//if edgeXerr != nil {
