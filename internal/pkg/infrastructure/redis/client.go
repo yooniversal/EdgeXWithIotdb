@@ -118,7 +118,7 @@ func ChangeTypeToEvent(sessionDataSet *iotdbClient.SessionDataSet) (events []mod
 
 			reading := models.SimpleReading{
 				BaseReading: models.BaseReading{
-					Id:           uuid.New().String(),
+					Id:           Id,
 					Origin:       0,
 					DeviceName:   deviceName,
 					ResourceName: resourceName,
